@@ -33,7 +33,7 @@ namespace SpriteAnimationPreview
         protected override Editor GetBaseEditor()
         {
             Editor editor = null;
-            var baseType = Types.GetType("UnityEditor.AnimationClipEditor", "UnityEditor.dll");
+            var baseType = System.Reflection.Assembly.Load("UnityEditor.dll").GetType("UnityEditor.SpriteInspector");
             CreateCachedEditor(targets, baseType, ref editor);
             return editor;
         }

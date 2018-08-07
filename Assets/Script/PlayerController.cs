@@ -110,8 +110,9 @@ public class PlayerController : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D collision) {
         if(collision.tag == "TriggerZone") {
-            GameManager.Instance.SetStage(collision.transform.position.x + 36f);
             collision.gameObject.SetActive(false);
+            GameManager.Instance.SetStage(collision.transform.position.x + 36f);
+            
         }
         if(collision.tag == "DamageObject" && !isDie) {
             //m_state = State.Die;
