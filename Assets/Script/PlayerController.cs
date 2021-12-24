@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using System.Collections;
 
 public class PlayerController : MonoBehaviour {
@@ -13,6 +12,7 @@ public class PlayerController : MonoBehaviour {
     Rigidbody2D m_rig2D;
     Button m_btn;
 
+    public LayerMask layerMask;
     public bool isDie = false;
     public bool isGround;
     public float jumpPower = 10f;
@@ -22,10 +22,6 @@ public class PlayerController : MonoBehaviour {
     float lineY = 1.5f;
     float origGravity;
     public float fallGravity;
-
-    void Awake() {
-
-    }
 
     void OnEnable() {
         Debug.Log("Enable Script");
@@ -54,8 +50,6 @@ public class PlayerController : MonoBehaviour {
     }
 
     void PlayerJump() {
-        //開啟 Ground 這一層 LayerMask
-        LayerMask layerMask = 1 << LayerMask.NameToLayer("Ground");
         //判斷是否是 Ground
         Vector2 thisPos = transform.position;
         Vector2 posA = new Vector2(thisPos.x + 0.45f,thisPos.y - lineY);
@@ -65,7 +59,7 @@ public class PlayerController : MonoBehaviour {
         if((Input.GetKeyDown(KeyCode.X) || Input.GetMouseButtonDown(0)) && isGround) {
             Debug.Log("Jump");
             m_rig2D.velocity = new Vector2(m_rig2D.velocity.x,jumpPower);
-            StartCoroutine("Jumping");
+            StartCoroutine(Jumping());
         }
     }
 
@@ -89,14 +83,14 @@ public class PlayerController : MonoBehaviour {
 
         float timer = 0;
 
-        while(Input.GetMouseButton(0) && timer < jumpTime) {
+        while(Input.GetMouseButton(0) && timer < jumpTime || Input.GetKey(KeyCode.X) && timer < jumpTime ) {
             float proportionCompleted = timer / jumpTime;
 
-            Vector2 thieFrameJumpVector = Vector2.Lerp(new Vector2(m_rig2D.velocity.x,jumpPower * jumpingMultiple),
-                new Vector2(m_rig2D.velocity.x,0f),
+            var velocity = m_rig2D.velocity;
+            Vector2 thieFrameJumpVector = Vector2.Lerp(new Vector2(velocity.x,jumpPower * jumpingMultiple), new Vector2(velocity.x,0f),
                 proportionCompleted);
 
-            m_rig2D.AddForce(thieFrameJumpVector);
+            m_rig2D.velocity = thieFrameJumpVector;
             timer += Time.deltaTime;
             yield return null;
         }
@@ -109,18 +103,17 @@ public class PlayerController : MonoBehaviour {
     }
 
     void OnTriggerEnter2D(Collider2D collision) {
-        if(collision.tag == "TriggerZone") {
+        if(collision.CompareTag("TriggerZone")) {
             collision.gameObject.SetActive(false);
             GameManager.Instance.SetStage(collision.transform.position.x + 36f);
             
         }
-        if(collision.tag == "DamageObject" && !isDie) {
-            //m_state = State.Die;
+        if(collision.CompareTag("DamageObject") && !isDie) {
             isDie = true;
         }
-        if(collision.tag == "Item") {
+        if(collision.CompareTag("Item")) {
             collision.gameObject.SetActive(false);
-            StartCoroutine("SpeedUp",5f);
+            StartCoroutine(SpeedUp(5f));
         }
     }
 }
